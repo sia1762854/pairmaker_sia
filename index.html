@@ -117,7 +117,7 @@ input[type=range]{width:100%;accent-color:var(--pink-deep)}
 .object img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
 .text{white-space:pre-wrap;overflow:hidden;display:flex;align-items:center;padding:2px 4px}
 .profile{background:#fff;border-radius:20px;padding:30px;color:#171717}
-.profile .avatar{width:150px;height:150px;margin:-55px auto 10px;border:8px solid #fff;border-radius:50%;object-fit:cover;display:block}
+.avatar-fill{width:150px;height:150px;margin:-55px auto 10px;border:8px solid #fff;border-radius:50%;background-size:cover;background-position:center;background-repeat:no-repeat;display:block}
 .avatar-placeholder{width:150px;height:150px;margin:-55px auto 10px;border:8px solid #fff;border-radius:50%;background:#eee;display:grid;place-items:center;color:#aaa;font-size:10px}
 .pname{text-align:center;font-size:28px;font-weight:800}
 .handle{text-align:center;color:#444;margin:4px 0 20px;font-family:'JetBrains Mono',monospace;font-size:13px}
@@ -138,8 +138,7 @@ input[type=range]{width:100%;accent-color:var(--pink-deep)}
 .bubble-row.right .bubble{background:var(--pink);color:#26141b;border-bottom-right-radius:4px}
 .bubble-sender{font-size:10px;color:#999;margin:0 0 3px 2px}
 .quote-music{display:flex;align-items:center;gap:16px;height:100%}
-.music-cover{width:76px;height:76px;border-radius:12px;background:#333;flex:none;display:grid;place-items:center;color:#777;font-size:24px;overflow:hidden}
-.music-cover img{width:100%;height:100%;object-fit:cover}
+.music-cover{width:76px;height:76px;border-radius:12px;background:#333;flex:none;display:grid;place-items:center;color:#777;font-size:24px;overflow:hidden;background-size:cover;background-position:center;background-repeat:no-repeat}
 .music-info{flex:1;min-width:0}
 .music-title{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .music-sub{font-size:11.5px;color:#999;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -158,12 +157,12 @@ input[type=range]{width:100%;accent-color:var(--pink-deep)}
 .pair-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-content:start;align-items:start}
 .pair-item{min-width:0;cursor:pointer;display:flex;flex-direction:column;gap:6px;border-radius:16px;transition:box-shadow .15s}
 .pair-item-active{box-shadow:0 0 0 2px var(--pink)}
-.pair-thumb-img,.pair-ph{width:100%;aspect-ratio:1.45;object-fit:cover;border-radius:14px;background-color:#3a3a3a;background-repeat:no-repeat;display:block;flex:none}
-.free-image-fill{width:100%;height:100%;background-color:#1c1c1c;background-repeat:no-repeat;border-radius:inherit}
-.pair-ph{display:grid;place-items:center;border:1px dashed #666;color:#999;font-size:11px}
+.pair-thumb-img{width:100%;aspect-ratio:1.45;border-radius:14px;background-repeat:no-repeat;display:block;flex:none}
+.pair-ph{width:100%;aspect-ratio:1.45;border-radius:14px;background-color:#3a3a3a;display:grid;place-items:center;border:1px dashed #666;color:#999;font-size:11px;flex:none}
+.free-image-fill{width:100%;height:100%;background-repeat:no-repeat;border-radius:20px}
 .pcap{font-size:11px;color:#ddd;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none;line-height:1.4}
 .bg-layer{pointer-events:none}
-.empty-image{display:grid;place-items:center;height:100%;background:#292929;border:2px dashed #999;color:#aaa;font-size:12.5px;letter-spacing:.03em;text-align:center;padding:10px}
+.empty-image{display:grid;place-items:center;height:100%;background:#292929;border:2px dashed #999;color:#aaa;font-size:12.5px;letter-spacing:.03em;text-align:center;padding:10px;border-radius:20px}
 
 /* mobile */
 .mobile-toggle{display:none}
@@ -286,6 +285,12 @@ const FONTS=[
 function base(type,name,x,y,w,h,z){return{id:nextId++,type,name,x,y,w,h,z,opacity:1,font:24,color:'#fff',text:'',fontFamily:'Pretendard',align:'left'}}
 function get(){return items.find(o=>o.id===selectedId)}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function coverBackgroundSize(frameW,frameH,photoRatio,scalePct){
+ const s=scalePct||100;
+ const frameRatio=frameW/(frameH||1);
+ const pr=photoRatio||frameRatio;
+ return (pr>frameRatio) ? ('auto '+s+'%') : (s+'% auto');
+}
 function ensureQuoteLines(o){
  if(!o.lines || !Array.isArray(o.lines) || !o.lines.length){
   const src=o.text||'';
@@ -353,13 +358,14 @@ function render(){
 
 function draw(e,o){
  if(o.type==='background'){e.classList.add('bg-layer');e.style.backgroundImage=o.src?'url("'+o.src+'")':'none';e.style.backgroundSize='cover';e.style.backgroundPosition='center';e.style.backgroundRepeat='no-repeat';return}
- if(o.type==='effect'){e.style.pointerEvents='none';if(o.effect==='dots'){e.style.background='radial-gradient(circle,rgba(255,255,255,.9) 1.7px,transparent 2.3px)';e.style.backgroundSize='11px 11px'}if(o.effect==='grain')e.style.backgroundImage='url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%22.4%22/%3E%3C/svg%3E")';if(o.effect==='glow')e.style.background='radial-gradient(circle at 50% 45%,rgba(255,180,200,.45),transparent 62%)';return}
- if(o.type==='profile'){e.classList.add('profile');e.style.background=o.bgColor||'#ffffff';e.innerHTML=o.avatar?'<img class="avatar" src="'+o.avatar+'">':'<div class="avatar-placeholder">PROFILE</div>';e.innerHTML+='<div class="pname">'+esc(o.person)+'</div><div class="handle">'+esc(o.handle)+'</div><hr class="rule"><div class="bio">'+esc(o.bio)+'</div><hr class="rule"><div class="rel"><b>'+esc(o.relation)+'</b></div><div class="sub">'+esc(o.sub)+'</div>';return}
+ if(o.type==='effect'){e.style.pointerEvents='none';if(o.effect==='dots'){e.style.background='radial-gradient(circle,rgba(255,255,255,.4) 1.1px,transparent 1.7px)';e.style.backgroundSize='11px 11px'}if(o.effect==='grain')e.style.backgroundImage='url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22120%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%22.8%22 numOctaves=%224%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22 opacity=%22.4%22/%3E%3C/svg%3E")';if(o.effect==='glow')e.style.background='radial-gradient(circle at 50% 45%,rgba(255,180,200,.45),transparent 62%)';return}
+ if(o.type==='profile'){e.classList.add('profile');e.style.background=o.bgColor||'#ffffff';e.innerHTML=o.avatar?'<div class="avatar-fill" style="background-image:url(\''+o.avatar+'\')"></div>':'<div class="avatar-placeholder">PROFILE</div>';e.innerHTML+='<div class="pname">'+esc(o.person)+'</div><div class="handle">'+esc(o.handle)+'</div><hr class="rule"><div class="bio">'+esc(o.bio)+'</div><hr class="rule"><div class="rel"><b>'+esc(o.relation)+'</b></div><div class="sub">'+esc(o.sub)+'</div>';return}
  if(['title','tagline','text'].includes(o.type)){e.classList.add('text');e.textContent=o.text||'';e.style.fontSize=(o.font||24)+'px';e.style.color=o.color||'#fff';e.style.fontFamily=o.fontFamily||'Pretendard';e.style.textAlign=o.align||'left';e.style.lineHeight='1.35';return}
  if(o.type==='image'){
   if(o.src){
    const scale=o.imgScale||100,px=o.imgPosX??50,py=o.imgPosY??50;
-   e.innerHTML='<div class="free-image-fill" style="background-image:url(\''+o.src+'\');background-size:'+scale+'% auto;background-position:'+px+'% '+py+'%"></div>';
+   const bgSize=coverBackgroundSize(o.w,o.h,o.ratio,scale);
+   e.innerHTML='<div class="free-image-fill" style="background-image:url(\''+o.src+'\');background-size:'+bgSize+';background-position:'+px+'% '+py+'%"></div>';
   } else {
    e.innerHTML='<div class="empty-image">메인 이미지<br>클릭해서 이미지 추가</div>';
   }
@@ -387,7 +393,7 @@ function draw(e,o){
    e.innerHTML=html;
   } else if(variant==='music'){
    e.classList.add('quote-music');
-   e.innerHTML='<div class="music-cover">'+(o.cover?'<img src="'+o.cover+'">':'♪')+'</div>'
+   e.innerHTML='<div class="music-cover" style="'+(o.cover?"background-image:url('"+o.cover+"')":'')+'">'+(o.cover?'':'♪')+'</div>'
     +'<div class="music-info">'
     +'<div class="music-title">'+esc(o.title||'곡 제목')+'</div>'
     +'<div class="music-sub">'+esc(o.subtitle||'아티스트 · 앨범')+'</div>'
@@ -423,7 +429,8 @@ function draw(e,o){
    const d=document.createElement('div');d.className='pair-item'+(activeIdx===i?' pair-item-active':'');
    if(c.src){
     const scale=c.scale||100,px=c.posX??50,py=c.posY??50;
-    d.innerHTML='<div class="pair-thumb-img" style="background-image:url(\''+c.src+'\');background-size:'+scale+'% auto;background-position:'+px+'% '+py+'%"></div><div class="pcap">'+esc(c.name)+'</div>';
+    const bgSize=coverBackgroundSize(1.45,1,c.ratio,scale);
+    d.innerHTML='<div class="pair-thumb-img" style="background-image:url(\''+c.src+'\');background-size:'+bgSize+';background-position:'+px+'% '+py+'%"></div><div class="pcap">'+esc(c.name)+'</div>';
    } else {
     d.innerHTML='<div class="pair-ph">이미지 추가</div><div class="pcap">'+esc(c.name)+'</div>';
    }
@@ -745,20 +752,10 @@ document.addEventListener('pointermove',ev=>{
   const o=items.find(x=>x.id===resize.id);if(!o)return;
   const dx=(ev.clientX-resize.sx)/zoom,dy=(ev.clientY-resize.sy)/zoom,min=40;
   let x=resize.ox,y=resize.oy,w=resize.ow,h=resize.oh;
-  if(o.type==='image' && o.ratio){
-   const signX=resize.pos.includes('l')?-1:1;
-   let newW=Math.max(min,resize.ow+dx*signX);
-   let newH=newW/o.ratio;
-   if(newH<min){newH=min;newW=newH*o.ratio;}
-   w=newW;h=newH;
-   if(resize.pos.includes('l'))x=resize.ox+resize.ow-w;
-   if(resize.pos.includes('t'))y=resize.oy+resize.oh-h;
-  } else {
-   if(resize.pos.includes('r'))w=Math.max(min,resize.ow+dx);
-   if(resize.pos.includes('b'))h=Math.max(min,resize.oh+dy);
-   if(resize.pos.includes('l')){w=Math.max(min,resize.ow-dx);x=resize.ox+resize.ow-w}
-   if(resize.pos.includes('t')){h=Math.max(min,resize.oh-dy);y=resize.oy+resize.oh-h}
-  }
+  if(resize.pos.includes('r'))w=Math.max(min,resize.ow+dx);
+  if(resize.pos.includes('b'))h=Math.max(min,resize.oh+dy);
+  if(resize.pos.includes('l')){w=Math.max(min,resize.ow-dx);x=resize.ox+resize.ow-w}
+  if(resize.pos.includes('t')){h=Math.max(min,resize.oh-dy);y=resize.oy+resize.oh-h}
   o.x=x;o.y=y;o.w=w;o.h=h;
   const e=document.querySelector('.object[data-id="'+o.id+'"]');
   if(e){e.style.left=x+'px';e.style.top=y+'px';e.style.width=w+'px';e.style.height=h+'px'}
@@ -813,9 +810,16 @@ $('imageFile').addEventListener('change',ev=>{
    const p=items.find(x=>x.id===pairEditing.container);
    if(p&&p.cards[pairEditing.index]){
     const c=p.cards[pairEditing.index];
-    c.src=r.result;c.scale=100;c.posX=50;c.posY=50;
+    const img=new Image();
+    img.onload=()=>{
+     c.ratio=(img.naturalWidth&&img.naturalHeight)?img.naturalWidth/img.naturalHeight:1;
+     c.src=r.result;c.scale=100;c.posX=50;c.posY=50;
+     selectedId=pairEditing.container;render();setStatus('페어 이미지를 적용했어요.');
+    };
+    img.src=r.result;
+   } else {
+    selectedId=pairEditing.container;render();setStatus('페어 이미지를 적용했어요.');
    }
-   selectedId=pairEditing.container;render();setStatus('페어 이미지를 적용했어요.');
   } else {
    const o=get();
    if(o&&o.type==='image'){
@@ -823,8 +827,6 @@ $('imageFile').addEventListener('change',ev=>{
     img.onload=()=>{
      o.ratio=(img.naturalWidth&&img.naturalHeight)?img.naturalWidth/img.naturalHeight:1;
      o.src=r.result;
-     o.h=Math.max(40,Math.round(o.w/o.ratio));
-     o.baseW=o.w;o.baseH=o.h;
      o.imgScale=100;o.imgPosX=50;o.imgPosY=50;
      render();select(o.id);setStatus('이미지를 적용했어요.');
     };
@@ -905,7 +907,7 @@ function addEffect(kind){
   return;
  }
  const o=base('effect',label+' 효과',0,0,1600,1000,1);
- o.effect=kind;o.opacity=.65;
+ o.effect=kind;o.opacity=kind==='dots'?.4:.65;
  items.push(o);render();updateEffectButtons();
  setStatus(label+' 효과를 추가했어요.');
 }
@@ -920,7 +922,7 @@ async function downloadPNG(){
  const prevSel=selectedId;selectedId=null;render();
  setStatus('PNG로 저장하는 중…');
  try{
-  const c=await html2canvas($('stage'),{width:1600,height:1000,scale:1,backgroundColor:'#111'});
+  const c=await html2canvas($('stage'),{width:1600,height:1000,scale:2,backgroundColor:'#111'});
   const a=document.createElement('a');a.download='pair-maker.png';a.href=c.toDataURL('image/png');a.click();
   setStatus('PNG로 저장했어요.');
  }catch(err){console.error(err);setStatus('저장 중 문제가 발생했어요.');}
